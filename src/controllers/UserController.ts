@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { UpdateWithAggregationPipeline } from "mongoose";
 import { v4 as uuid } from "uuid";
 import User from "../models/User";
+import bcrypt from "bcryptjs";
 
 async function indexUser(req: Request, res: Response) {
     try {
@@ -21,10 +22,12 @@ async function storeUser(req: Request, res: Response) {
         return res.status(400).json({ error: "data is missing" });
     }
 
+    const encryptedPassword = await bcrypt.hash(senha, 8);
+
     const user = new User({
         _id: uuid(),
         nome,
-        senha,
+        senha: encryptedPassword,
         email,
         dataCriacao: new Date(),
     });
