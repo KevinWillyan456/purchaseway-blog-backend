@@ -2,6 +2,7 @@ import { Schema, model, Document } from "mongoose";
 import { UserDoc } from "./User";
 
 export interface PostDoc extends Document {
+    _id: string;
     conteudo: Array<{ text: string; urlImg: string }>;
     respostas: Array<{ idUser: UserDoc["_id"]; text: string }>;
     proprietario: UserDoc["_id"];
@@ -10,6 +11,7 @@ export interface PostDoc extends Document {
 }
 
 const postSchema = new Schema<PostDoc>({
+    _id: { type: String, required: true },
     conteudo: [
         {
             text: { type: String },
@@ -18,11 +20,11 @@ const postSchema = new Schema<PostDoc>({
     ],
     respostas: [
         {
-            idUser: { type: Schema.Types.ObjectId, ref: "User" },
+            idUser: { type: String, ref: "User" },
             text: { type: String },
         },
     ],
-    proprietario: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    proprietario: { type: String, ref: "User", required: true },
     curtidas: { type: Number, default: 0 },
     dataCriacao: { type: Date, default: Date.now },
 });

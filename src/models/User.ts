@@ -2,6 +2,7 @@ import { Schema, model, Document } from "mongoose";
 import { PostDoc } from "./Post";
 
 export interface UserDoc extends Document {
+    _id: string;
     nome: string;
     senha: string;
     email: string;
@@ -11,11 +12,12 @@ export interface UserDoc extends Document {
 }
 
 const userSchema = new Schema<UserDoc>({
+    _id: { type: String, required: true },
     nome: { type: String, required: true },
     senha: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     dataCriacao: { type: Date, default: Date.now },
-    posts: [{ type: Schema.Types.ObjectId, ref: "Post" }],
+    posts: [{ type: String, ref: "Post" }],
     curtidas: { type: Number, default: 0 },
 });
 
