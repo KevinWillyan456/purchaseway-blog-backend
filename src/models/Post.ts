@@ -3,7 +3,7 @@ import { UserDoc } from './User'
 
 export interface PostDoc extends Document {
     _id: string
-    conteudo: Array<{ text: string; urlImg: string }>
+    conteudo: { text: string; urlImg: string }
     respostas: Array<{ idUser: UserDoc['_id']; text: string }>
     proprietario: UserDoc['_id']
     curtidas: number
@@ -12,12 +12,11 @@ export interface PostDoc extends Document {
 
 const postSchema = new Schema<PostDoc>({
     _id: { type: String, required: true },
-    conteudo: [
-        {
-            text: { type: String },
-            urlImg: { type: String },
-        },
-    ],
+    conteudo: {
+        text: { type: String },
+        urlImg: { type: String },
+    },
+
     respostas: [
         {
             idUser: { type: String, ref: 'User' },
