@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import { UpdateWithAggregationPipeline } from 'mongoose'
 import { v4 as uuid } from 'uuid'
 import Post from '../models/Post'
+import User from '../models/User'
 
 async function indexPost(req: Request, res: Response) {
     try {
@@ -32,23 +33,33 @@ async function indexPostById(
     }
 }
 
-async function storePost(req: Request, res: Response) {
+async function storePost(
+    req: Request<{ userId?: UpdateWithAggregationPipeline }>,
+    res: Response
+) {
     const { text } = req.body
+    const { userId } = req.params
 
     if (!text) {
         return res.status(400).json({ error: 'data is missing' })
     }
 
-    const post = new Post({
-        _id: uuid(),
-        conteudo: { text, urlImg: '' },
-        respostas: [],
-        proprietario: '123',
-        curtidas: 0,
-        dataCriacao: new Date(),
-    })
-
     try {
+        const user = await User.findById(userId)
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const post = new Post({
+            _id: uuid(),
+            conteudo: { text, urlImg: '' },
+            respostas: [],
+            proprietario: user?._id,
+            curtidas: 0,
+            dataCriacao: new Date(),
+        })
+
         await post.save()
 
         return res.status(201).json({ message: 'Post added successfully!' })

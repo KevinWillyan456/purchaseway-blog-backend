@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs'
 
 async function indexUser(req: Request, res: Response) {
     try {
-        const users = await User.find()
+        const users = await User.find({}, '-senha')
             .sort({ title: 1 })
             .collation({ locale: 'pt', strength: 2 })
         return res.status(200).json({ users })
@@ -23,6 +23,11 @@ async function indexUserById(
 
     try {
         const user = await User.findById(id, '-senha')
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
         return res.status(200).json({ user })
     } catch (err) {
         res.status(500).json({ error: err })

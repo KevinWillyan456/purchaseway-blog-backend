@@ -26,7 +26,7 @@ routes.delete('/users/:id', deleteUser)
 
 routes.get('/posts', indexPost)
 routes.get('/posts/:id', indexPostById)
-routes.post('/posts', storePost)
+routes.post('/posts/:userId', storePost)
 routes.put('/posts/content/:id', updatePostContent)
 routes.delete('/posts/:id', deletePost)
 routes.put('/posts/likes/:id', incrementPostLikes)
