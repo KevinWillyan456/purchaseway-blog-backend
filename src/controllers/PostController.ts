@@ -220,6 +220,7 @@ async function addPostResponse(
     const updateDoc = {
         $push: {
             respostas: {
+                _id: uuid(),
                 userId,
                 text,
                 dataCriacao: new Date(),
@@ -248,6 +249,91 @@ async function addPostResponse(
     }
 }
 
+async function updatePostResponse(
+    req: Request<{
+        id?: UpdateWithAggregationPipeline
+        responseId?: UpdateWithAggregationPipeline
+    }>,
+    res: Response
+) {
+    const { id, responseId } = req.params
+    const { text } = req.body
+
+    if (!text) {
+        return res.status(400).json({ error: 'text is missing' })
+    }
+
+    const filter = { _id: id, 'respostas._id': responseId }
+    const updateDoc = {
+        $set: {
+            'respostas.$.text': text,
+        },
+    }
+
+    try {
+        const post = await Post.findById(id)
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' })
+        }
+
+        if (
+            !post.respostas.find(
+                (r) => r._id === (responseId as unknown as string)
+            )
+        ) {
+            return res.status(404).json({ message: 'Response not found' })
+        }
+
+        await Post.updateOne(filter, updateDoc)
+
+        return res
+            .status(200)
+            .json({ message: 'Post response updated successfully!' })
+    } catch (err) {
+        res.status(500).json({ error: err })
+    }
+}
+
+async function deletePostResponse(
+    req: Request<{
+        id?: UpdateWithAggregationPipeline
+        responseId?: UpdateWithAggregationPipeline
+    }>,
+    res: Response
+) {
+    const { id, responseId } = req.params
+
+    const filter = { _id: id }
+    const updateDoc = {
+        $pull: {
+            respostas: { _id: responseId },
+        },
+    }
+
+    try {
+        const post = await Post.findById(id)
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' })
+        }
+
+        if (
+            !post.respostas.find(
+                (r) => r._id === (responseId as unknown as string)
+            )
+        ) {
+            return res.status(404).json({ message: 'Response not found' })
+        }
+
+        await Post.updateOne(filter, updateDoc)
+
+        return res
+            .status(200)
+            .json({ message: 'Post response removed successfully!' })
+    } catch (err) {
+        res.status(500).json({ error: err })
+    }
+}
+
 export {
     indexPost,
     indexPostById,
@@ -258,4 +344,6 @@ export {
     incrementPostLikes,
     decrementPostLikes,
     addPostResponse,
+    updatePostResponse,
+    deletePostResponse,
 }

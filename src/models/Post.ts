@@ -5,6 +5,7 @@ export interface PostDoc extends Document {
     _id: string
     conteudo: { text: string; urlImg: string }
     respostas: Array<{
+        _id: string
         userId: UserDoc['_id']
         text: string
         dataCriacao: Date
@@ -23,7 +24,7 @@ const postSchema = new Schema<PostDoc>({
 
     respostas: [
         {
-            _id: false,
+            _id: { type: String, required: true },
             userId: { type: String, ref: 'User' },
             text: { type: String },
             dataCriacao: { type: Date, default: Date.now },
