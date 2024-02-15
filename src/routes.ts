@@ -13,7 +13,8 @@ import {
     indexPost,
     indexPostById,
     storePost,
-    updatePostContent,
+    updatePostImg,
+    updatePostText,
 } from './controllers/PostController'
 
 export const routes = express.Router()
@@ -27,7 +28,8 @@ routes.delete('/users/:id', deleteUser)
 routes.get('/posts', indexPost)
 routes.get('/posts/:id', indexPostById)
 routes.post('/posts/:userId', storePost)
-routes.put('/posts/content/:id', updatePostContent)
+routes.put('/posts/text/:id', updatePostText)
+routes.put('/posts/img/:id', updatePostImg)
 routes.delete('/posts/:id', deletePost)
 routes.put('/posts/likes/:id', incrementPostLikes)
 routes.put('/posts/dislikes/:id', decrementPostLikes)

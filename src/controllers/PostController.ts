@@ -68,7 +68,7 @@ async function storePost(
     }
 }
 
-async function updatePostContent(
+async function updatePostText(
     req: Request<{ id?: UpdateWithAggregationPipeline }>,
     res: Response
 ) {
@@ -91,7 +91,38 @@ async function updatePostContent(
 
         return res
             .status(200)
-            .json({ mensagem: 'Content updated successfully!' })
+            .json({ mensagem: 'Post text updated successfully!' })
+    } catch (err) {
+        return res.status(500).json({ error: err })
+    }
+}
+
+async function updatePostImg(
+    req: Request<{ id?: UpdateWithAggregationPipeline }>,
+    res: Response
+) {
+    const { urlImg } = req.body
+    const { id } = req.params
+
+    if (!urlImg) {
+        return res
+            .status(400)
+            .json({ error: 'You must enter with a image URL' })
+    }
+
+    try {
+        const post = await Post.findById(id)
+        if (!post) {
+            return res.status(404).json({ mensagem: 'Post not found' })
+        }
+
+        post.conteudo.urlImg = urlImg
+
+        await post.save()
+
+        return res
+            .status(200)
+            .json({ mensagem: 'Post image updated successfully!' })
     } catch (err) {
         return res.status(500).json({ error: err })
     }
@@ -175,7 +206,8 @@ export {
     indexPost,
     indexPostById,
     storePost,
-    updatePostContent,
+    updatePostText,
+    updatePostImg,
     deletePost,
     incrementPostLikes,
     decrementPostLikes,
