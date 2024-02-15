@@ -4,7 +4,11 @@ import { UserDoc } from './User'
 export interface PostDoc extends Document {
     _id: string
     conteudo: { text: string; urlImg: string }
-    respostas: Array<{ idUser: UserDoc['_id']; text: string }>
+    respostas: Array<{
+        userId: UserDoc['_id']
+        text: string
+        dataCriacao: Date
+    }>
     proprietario: UserDoc['_id']
     curtidas: number
     dataCriacao: Date
@@ -19,8 +23,10 @@ const postSchema = new Schema<PostDoc>({
 
     respostas: [
         {
-            idUser: { type: String, ref: 'User' },
+            _id: false,
+            userId: { type: String, ref: 'User' },
             text: { type: String },
+            dataCriacao: { type: Date, default: Date.now },
         },
     ],
     proprietario: { type: String, ref: 'User', required: true },

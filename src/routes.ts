@@ -7,6 +7,7 @@ import {
     updateUser,
 } from './controllers/UserController'
 import {
+    addPostResponse,
     decrementPostLikes,
     deletePost,
     incrementPostLikes,
@@ -33,3 +34,4 @@ routes.put('/posts/img/:id', updatePostImg)
 routes.delete('/posts/:id', deletePost)
 routes.put('/posts/likes/:id', incrementPostLikes)
 routes.put('/posts/dislikes/:id', decrementPostLikes)
+routes.post('/posts/response/:id/:userId', addPostResponse)

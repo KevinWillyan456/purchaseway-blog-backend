@@ -202,6 +202,52 @@ async function decrementPostLikes(
     }
 }
 
+async function addPostResponse(
+    req: Request<{
+        id?: UpdateWithAggregationPipeline
+        userId?: UpdateWithAggregationPipeline
+    }>,
+    res: Response
+) {
+    const { id, userId } = req.params
+    const { text } = req.body
+
+    if (!text) {
+        return res.status(400).json({ error: 'text is missing' })
+    }
+
+    const filter = { _id: id }
+    const updateDoc = {
+        $push: {
+            respostas: {
+                userId,
+                text,
+                dataCriacao: new Date(),
+            },
+        },
+    }
+
+    try {
+        const post = await Post.findById(id)
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' })
+        }
+
+        const user = await User.findById(userId)
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        await Post.updateOne(filter, updateDoc)
+
+        return res
+            .status(200)
+            .json({ message: 'Post response added successfully!' })
+    } catch (err) {
+        res.status(500).json({ error: err })
+    }
+}
+
 export {
     indexPost,
     indexPostById,
@@ -211,4 +257,5 @@ export {
     deletePost,
     incrementPostLikes,
     decrementPostLikes,
+    addPostResponse,
 }
