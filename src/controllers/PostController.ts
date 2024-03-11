@@ -82,7 +82,7 @@ async function updatePostText(
     try {
         const post = await Post.findById(id)
         if (!post) {
-            return res.status(404).json({ mensagem: 'Post not found' })
+            return res.status(404).json({ message: 'Post not found' })
         }
 
         post.conteudo.text = text
@@ -91,7 +91,7 @@ async function updatePostText(
 
         return res
             .status(200)
-            .json({ mensagem: 'Post text updated successfully!' })
+            .json({ message: 'Post text updated successfully!' })
     } catch (err) {
         return res.status(500).json({ error: err })
     }
@@ -113,7 +113,7 @@ async function updatePostImg(
     try {
         const post = await Post.findById(id)
         if (!post) {
-            return res.status(404).json({ mensagem: 'Post not found' })
+            return res.status(404).json({ message: 'Post not found' })
         }
 
         post.conteudo.urlImg = urlImg
@@ -122,7 +122,7 @@ async function updatePostImg(
 
         return res
             .status(200)
-            .json({ mensagem: 'Post image updated successfully!' })
+            .json({ message: 'Post image updated successfully!' })
     } catch (err) {
         return res.status(500).json({ error: err })
     }

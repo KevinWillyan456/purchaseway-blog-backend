@@ -10,7 +10,7 @@ export default function AuthAPI(
     if (!apiKey || apiKey !== `${process.env.API_KEY || 'none'}`) {
         return res
             .status(401)
-            .json({ mensagem: 'API Key invalid or not present' })
+            .json({ message: 'API Key invalid or not present' })
     }
 
     next()
