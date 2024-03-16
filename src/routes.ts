@@ -16,6 +16,7 @@ import {
     storePost,
     updatePostImg,
     updatePostResponse,
+    togglePostResponseLikes,
     updatePostText,
     updatePostTitle,
 } from './controllers/PostController'
@@ -38,4 +39,8 @@ routes.delete('/posts/:id', deletePost)
 routes.put('/posts/likes/:id/:userId', togglePostLikes)
 routes.post('/posts/response/:id/:userId', addPostResponse)
 routes.put('/posts/response/:id/:responseId', updatePostResponse)
+routes.put(
+    '/posts/response/likes/:id/:responseId/:userId',
+    togglePostResponseLikes
+)
 routes.delete('/posts/response/:id/:responseId', deletePostResponse)

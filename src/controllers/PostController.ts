@@ -211,7 +211,6 @@ async function togglePostLikes(
                 .json({ message: 'Post likes incremented successfully!' })
         }
     } catch (err) {
-        console.log(err)
         res.status(500).json({ error: err })
     }
 }
@@ -308,6 +307,54 @@ async function updatePostResponse(
     }
 }
 
+async function togglePostResponseLikes(
+    req: Request<{
+        id?: UpdateWithAggregationPipeline
+        responseId?: UpdateWithAggregationPipeline
+        userId?: UpdateWithAggregationPipeline
+    }>,
+    res: Response
+) {
+    const { id, responseId, userId } = req.params
+
+    const filter = { _id: id, 'respostas._id': responseId }
+
+    try {
+        const post = await Post.findById(id)
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' })
+        }
+
+        const response = post.respostas.find(
+            (r) => r._id === (responseId as unknown as string)
+        )
+
+        if (!response) {
+            return res.status(404).json({ message: 'Response not found' })
+        }
+
+        if (response.curtidas.includes(userId as unknown as string)) {
+            await Post.updateOne(filter, {
+                $pull: { 'respostas.$.curtidas': userId },
+            })
+
+            return res.status(200).json({
+                message: 'Post response likes decremented successfully!',
+            })
+        } else {
+            await Post.updateOne(filter, {
+                $push: { 'respostas.$.curtidas': userId },
+            })
+
+            return res.status(200).json({
+                message: 'Post response likes incremented successfully!',
+            })
+        }
+    } catch (err) {
+        res.status(500).json({ error: err })
+    }
+}
+
 async function deletePostResponse(
     req: Request<{
         id?: UpdateWithAggregationPipeline
@@ -359,5 +406,6 @@ export {
     togglePostLikes,
     addPostResponse,
     updatePostResponse,
+    togglePostResponseLikes,
     deletePostResponse,
 }
