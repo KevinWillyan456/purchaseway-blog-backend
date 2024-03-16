@@ -8,10 +8,9 @@ import {
 } from './controllers/UserController'
 import {
     addPostResponse,
-    decrementPostLikes,
     deletePost,
     deletePostResponse,
-    incrementPostLikes,
+    togglePostLikes,
     indexPost,
     indexPostById,
     storePost,
@@ -36,8 +35,7 @@ routes.put('/posts/text/:id', updatePostText)
 routes.put('/posts/img/:id', updatePostImg)
 routes.put('/posts/title/:id', updatePostTitle)
 routes.delete('/posts/:id', deletePost)
-routes.put('/posts/likes/:id', incrementPostLikes)
-routes.put('/posts/dislikes/:id', decrementPostLikes)
+routes.put('/posts/likes/:id/:userId', togglePostLikes)
 routes.post('/posts/response/:id/:userId', addPostResponse)
 routes.put('/posts/response/:id/:responseId', updatePostResponse)
 routes.delete('/posts/response/:id/:responseId', deletePostResponse)

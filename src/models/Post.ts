@@ -11,7 +11,7 @@ export interface PostDoc extends Document {
         dataCriacao: Date
     }>
     proprietario: UserDoc['_id']
-    curtidas: number
+    curtidas: string[]
     dataCriacao: Date
 }
 
@@ -32,7 +32,7 @@ const postSchema = new Schema<PostDoc>({
         },
     ],
     proprietario: { type: String, ref: 'User', required: true },
-    curtidas: { type: Number, default: 0 },
+    curtidas: { type: [String] },
     dataCriacao: { type: Date, default: Date.now },
 })
 

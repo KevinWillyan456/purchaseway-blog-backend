@@ -175,58 +175,43 @@ async function deletePost(
     }
 }
 
-async function incrementPostLikes(
-    req: Request<{ id?: UpdateWithAggregationPipeline }>,
+async function togglePostLikes(
+    req: Request<{
+        id?: UpdateWithAggregationPipeline
+        userId?: UpdateWithAggregationPipeline
+    }>,
     res: Response
 ) {
-    const { id } = req.params
+    const { id, userId } = req.params
 
     const filter = { _id: id }
-    const updateDoc = {
-        $inc: {
-            curtidas: 1,
-        },
-    }
 
     try {
         const post = await Post.findById(id)
         if (!post) {
             return res.status(404).json({ message: 'Post not found' })
         }
-        await Post.updateOne(filter, updateDoc)
 
-        return res
-            .status(200)
-            .json({ message: 'Post likes incremented successfully!' })
-    } catch (err) {
-        res.status(500).json({ error: err })
-    }
-}
-
-async function decrementPostLikes(
-    req: Request<{ id?: UpdateWithAggregationPipeline }>,
-    res: Response
-) {
-    const { id } = req.params
-
-    const filter = { _id: id }
-    const updateDoc = {
-        $inc: {
-            curtidas: -1,
-        },
-    }
-
-    try {
-        const post = await Post.findById(id)
-        if (!post) {
-            return res.status(404).json({ message: 'Post not found' })
+        const user = await User.findById(userId)
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
         }
-        await Post.updateOne(filter, updateDoc)
 
-        return res
-            .status(200)
-            .json({ message: 'Post likes decremented successfully!' })
+        if (post.curtidas.includes(userId as unknown as string)) {
+            await Post.updateOne(filter, { $pull: { curtidas: userId } })
+
+            return res
+                .status(200)
+                .json({ message: 'Post likes decremented successfully!' })
+        } else {
+            await Post.updateOne(filter, { $push: { curtidas: userId } })
+
+            return res
+                .status(200)
+                .json({ message: 'Post likes incremented successfully!' })
+        }
     } catch (err) {
+        console.log(err)
         res.status(500).json({ error: err })
     }
 }
@@ -371,8 +356,7 @@ export {
     updatePostImg,
     updatePostTitle,
     deletePost,
-    incrementPostLikes,
-    decrementPostLikes,
+    togglePostLikes,
     addPostResponse,
     updatePostResponse,
     deletePostResponse,
