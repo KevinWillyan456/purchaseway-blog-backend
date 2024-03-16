@@ -3,7 +3,7 @@ import { UserDoc } from './User'
 
 export interface PostDoc extends Document {
     _id: string
-    conteudo: { text: string; urlImg: string }
+    conteudo: { text: string; urlImg: string; title: string }
     respostas: Array<{
         _id: string
         userId: UserDoc['_id']
@@ -20,6 +20,7 @@ const postSchema = new Schema<PostDoc>({
     conteudo: {
         text: { type: String },
         urlImg: { type: String },
+        title: { type: String },
     },
 
     respostas: [

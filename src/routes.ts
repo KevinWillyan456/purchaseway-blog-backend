@@ -18,6 +18,7 @@ import {
     updatePostImg,
     updatePostResponse,
     updatePostText,
+    updatePostTitle,
 } from './controllers/PostController'
 
 export const routes = express.Router()
@@ -33,6 +34,7 @@ routes.get('/posts/:id', indexPostById)
 routes.post('/posts/:userId', storePost)
 routes.put('/posts/text/:id', updatePostText)
 routes.put('/posts/img/:id', updatePostImg)
+routes.put('/posts/title/:id', updatePostTitle)
 routes.delete('/posts/:id', deletePost)
 routes.put('/posts/likes/:id', incrementPostLikes)
 routes.put('/posts/dislikes/:id', decrementPostLikes)

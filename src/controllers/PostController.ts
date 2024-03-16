@@ -37,10 +37,10 @@ async function storePost(
     req: Request<{ userId?: UpdateWithAggregationPipeline }>,
     res: Response
 ) {
-    const { text } = req.body
+    const { text, title } = req.body
     const { userId } = req.params
 
-    if (!text) {
+    if (!text || !title) {
         return res.status(400).json({ error: 'data is missing' })
     }
 
@@ -53,7 +53,7 @@ async function storePost(
 
         const post = new Post({
             _id: uuid(),
-            conteudo: { text, urlImg: '' },
+            conteudo: { text, urlImg: '', title },
             respostas: [],
             proprietario: user?._id,
             curtidas: 0,
@@ -123,6 +123,35 @@ async function updatePostImg(
         return res
             .status(200)
             .json({ message: 'Post image updated successfully!' })
+    } catch (err) {
+        return res.status(500).json({ error: err })
+    }
+}
+
+async function updatePostTitle(
+    req: Request<{ id?: UpdateWithAggregationPipeline }>,
+    res: Response
+) {
+    const { title } = req.body
+    const { id } = req.params
+
+    if (!title) {
+        return res.status(400).json({ error: 'You must enter with a title' })
+    }
+
+    try {
+        const post = await Post.findById(id)
+        if (!post) {
+            return res.status(404).json({ message: 'Post not found' })
+        }
+
+        post.conteudo.title = title
+
+        await post.save()
+
+        return res
+            .status(200)
+            .json({ message: 'Post title updated successfully!' })
     } catch (err) {
         return res.status(500).json({ error: err })
     }
@@ -340,6 +369,7 @@ export {
     storePost,
     updatePostText,
     updatePostImg,
+    updatePostTitle,
     deletePost,
     incrementPostLikes,
     decrementPostLikes,
