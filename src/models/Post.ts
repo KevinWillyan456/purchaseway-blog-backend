@@ -20,7 +20,7 @@ const postSchema = new Schema<PostDoc>({
     _id: { type: String, required: true },
     conteudo: {
         text: { type: String },
-        urlImg: { type: String },
+        urlImg: { type: String, default: '' },
         title: { type: String },
     },
 

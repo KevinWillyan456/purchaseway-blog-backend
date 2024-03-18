@@ -9,6 +9,9 @@ async function indexPost(req: Request, res: Response) {
         const posts = await Post.find()
             .sort({ title: 1 })
             .collation({ locale: 'pt', strength: 2 })
+
+        posts.sort((a, b) => b.curtidas.length - a.curtidas.length)
+
         return res.status(200).json({ posts })
     } catch (err) {
         res.status(500).json({ error: err })
