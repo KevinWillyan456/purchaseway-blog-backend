@@ -3,6 +3,7 @@ import {
     deleteUser,
     indexUser,
     indexUserById,
+    login,
     storeUser,
     updateUser,
 } from './controllers/UserController'
@@ -28,6 +29,7 @@ routes.get('/users/:id', indexUserById)
 routes.post('/users', storeUser)
 routes.put('/users/:id', updateUser)
 routes.delete('/users/:id', deleteUser)
+routes.post('/login', login)
 
 routes.get('/posts', indexPost)
 routes.get('/posts/:id', indexPostById)

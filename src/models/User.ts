@@ -1,5 +1,4 @@
 import { Schema, model, Document } from 'mongoose'
-import { PostDoc } from './Post'
 
 export interface UserDoc extends Document {
     _id: string
@@ -7,7 +6,6 @@ export interface UserDoc extends Document {
     senha: string
     email: string
     dataCriacao: Date
-    posts: Array<PostDoc['_id']>
     curtidas: number
 }
 
@@ -17,7 +15,6 @@ const userSchema = new Schema<UserDoc>({
     senha: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     dataCriacao: { type: Date, default: Date.now },
-    posts: [{ type: String, ref: 'Post' }],
     curtidas: { type: Number, default: 0 },
 })
 

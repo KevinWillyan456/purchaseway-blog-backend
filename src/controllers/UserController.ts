@@ -3,6 +3,7 @@ import { UpdateWithAggregationPipeline } from 'mongoose'
 import { v4 as uuid } from 'uuid'
 import User from '../models/User'
 import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
 
 async function indexUser(req: Request, res: Response) {
     try {
@@ -61,7 +62,7 @@ async function storeUser(req: Request, res: Response) {
 
         return res.status(201).json({ message: 'User added successfully!' })
     } catch (err) {
-        res.status(400).json({ error: err })
+        res.status(500).json({ error: err })
     }
 }
 
@@ -118,8 +119,48 @@ async function deleteUser(
         }
         return res.status(200).json({ message: 'User removed succesfully!' })
     } catch (err) {
-        return res.status(500).json({ error: err })
+        res.status(500).json({ error: err })
     }
 }
 
-export { indexUser, indexUserById, storeUser, updateUser, deleteUser }
+async function login(req: Request, res: Response) {
+    const { email, senha, stayConnected } = req.body
+
+    if (!email || !senha) {
+        return res.status(400).json({ error: 'data is missing' })
+    }
+
+    if (typeof stayConnected !== 'boolean') {
+        return res
+            .status(400)
+            .json({ error: 'stayConnected must be a boolean' })
+    }
+
+    try {
+        const user = await User.findOne({ email })
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const passwordIsValid = await bcrypt.compare(senha, user.senha)
+
+        if (!passwordIsValid) {
+            return res.status(401).json({ message: 'Invalid password' })
+        }
+
+        const token = jwt.sign({ id: user._id }, `${process.env.SECRET}`, {
+            expiresIn: stayConnected ? '7d' : '1d',
+        })
+
+        return res.status(200).json({
+            message: 'User logged in successfully!',
+            token,
+            stayConnected,
+        })
+    } catch (err) {
+        res.status(500).json({ error: err })
+    }
+}
+
+export { indexUser, indexUserById, storeUser, updateUser, deleteUser, login }
