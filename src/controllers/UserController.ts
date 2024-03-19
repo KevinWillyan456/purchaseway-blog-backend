@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid'
 import User from '../models/User'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import Post from '../models/Post'
 
 async function indexUser(req: Request, res: Response) {
     try {
@@ -178,6 +179,37 @@ async function verifyToken(req: Request, res: Response) {
     }
 }
 
+async function getUserByToken(req: Request, res: Response) {
+    const token = req.headers.token as string
+
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' })
+    }
+
+    try {
+        const decoded = jwt.verify(
+            token,
+            `${process.env.JWT_SECRET}`
+        ) as jwt.JwtPayload
+
+        const user = await User.findById(decoded.id, '-senha')
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const postsByUser = await Post.find({ proprietario: user._id })
+        const likes = postsByUser.reduce((acc, post) => {
+            return acc + post.curtidas.length
+        }, 0)
+
+        user.curtidas = likes
+
+        return res.status(200).json({ user, posts: postsByUser.length })
+    } catch (err) {
+        res.status(401).json({ message: 'Token is invalid' })
+    }
+}
+
 export {
     indexUser,
     indexUserById,
@@ -186,4 +218,5 @@ export {
     deleteUser,
     login,
     verifyToken,
+    getUserByToken,
 }
