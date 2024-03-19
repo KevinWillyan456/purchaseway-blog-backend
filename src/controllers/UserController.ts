@@ -149,7 +149,7 @@ async function login(req: Request, res: Response) {
             return res.status(401).json({ message: 'Invalid password' })
         }
 
-        const token = jwt.sign({ id: user._id }, `${process.env.SECRET}`, {
+        const token = jwt.sign({ id: user._id }, `${process.env.JWT_SECRET}`, {
             expiresIn: stayConnected ? '7d' : '1d',
         })
 
@@ -163,4 +163,27 @@ async function login(req: Request, res: Response) {
     }
 }
 
-export { indexUser, indexUserById, storeUser, updateUser, deleteUser, login }
+async function verifyToken(req: Request, res: Response) {
+    const token = req.headers.token as string
+
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' })
+    }
+
+    try {
+        jwt.verify(token, `${process.env.JWT_SECRET}`)
+        return res.status(200).json({ message: 'Token is valid', valid: true })
+    } catch (err) {
+        res.status(401).json({ message: 'Token is invalid' })
+    }
+}
+
+export {
+    indexUser,
+    indexUserById,
+    storeUser,
+    updateUser,
+    deleteUser,
+    login,
+    verifyToken,
+}
