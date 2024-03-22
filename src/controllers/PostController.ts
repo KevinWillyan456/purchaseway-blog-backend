@@ -57,9 +57,7 @@ async function storePost(
         const post = new Post({
             _id: uuid(),
             conteudo: { text, urlImg: '', title },
-            respostas: [],
             proprietario: user?._id,
-            curtidas: 0,
             dataCriacao: new Date(),
         })
 

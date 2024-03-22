@@ -37,10 +37,16 @@ async function indexUserById(
 }
 
 async function storeUser(req: Request, res: Response) {
-    const { nome, senha, email } = req.body
+    const { nome, senha, email, stayConnected } = req.body
 
     if (!nome || !senha || !email) {
         return res.status(400).json({ error: 'data is missing' })
+    }
+
+    if (typeof stayConnected !== 'boolean') {
+        return res
+            .status(400)
+            .json({ error: 'stayConnected must be a boolean' })
     }
 
     const encryptedPassword = await bcrypt.hash(senha, 8)
@@ -61,7 +67,15 @@ async function storeUser(req: Request, res: Response) {
 
         await user.save()
 
-        return res.status(201).json({ message: 'User added successfully!' })
+        const token = jwt.sign({ id: user._id }, `${process.env.JWT_SECRET}`, {
+            expiresIn: stayConnected ? '7d' : '1d',
+        })
+
+        return res.status(201).json({
+            message: 'User added successfully!',
+            token,
+            stayConnected,
+        })
     } catch (err) {
         res.status(500).json({ error: err })
     }
