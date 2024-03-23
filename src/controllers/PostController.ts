@@ -159,16 +159,35 @@ async function updatePostTitle(
 }
 
 async function deletePost(
-    req: Request<{ id?: UpdateWithAggregationPipeline }>,
+    req: Request<{
+        id?: UpdateWithAggregationPipeline
+        userId?: UpdateWithAggregationPipeline
+    }>,
     res: Response
 ) {
-    const { id } = req.params
+    const { id, userId } = req.params
     const filter = { _id: id }
 
     try {
-        const post = await Post.deleteOne(filter)
-        if (post.deletedCount < 1) {
+        const user = await User.findById(userId)
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const post = await Post.findById(id)
+        if (!post) {
             return res.status(404).json({ message: 'Post not found' })
+        }
+
+        if (post.proprietario !== (userId as unknown as string)) {
+            return res
+                .status(401)
+                .json({ message: 'You are not the owner of this post' })
+        }
+
+        const postDelete = await Post.deleteOne(filter)
+        if (postDelete.deletedCount < 1) {
+            return res.status(404).json({ message: 'Post not removed' })
         }
         return res.status(200).json({ message: 'Post removed successfully!' })
     } catch (err) {
