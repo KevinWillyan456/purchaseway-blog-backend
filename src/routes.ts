@@ -40,9 +40,9 @@ routes.put('/posts/:id/:userId', updatePost)
 routes.delete('/posts/:id/:userId', deletePost)
 routes.put('/posts/likes/:id/:userId', togglePostLikes)
 routes.post('/posts/response/:id/:userId', addPostResponse)
-routes.put('/posts/response/:id/:responseId', updatePostResponse)
+routes.put('/posts/response/:id/:responseId/:userId', updatePostResponse)
 routes.put(
     '/posts/response/likes/:id/:responseId/:userId',
     togglePostResponseLikes
 )
-routes.delete('/posts/response/:id/:responseId', deletePostResponse)
+routes.delete('/posts/response/:id/:responseId/:userId', deletePostResponse)

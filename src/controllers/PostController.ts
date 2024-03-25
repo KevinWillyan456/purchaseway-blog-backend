@@ -231,10 +231,11 @@ async function updatePostResponse(
     req: Request<{
         id?: UpdateWithAggregationPipeline
         responseId?: UpdateWithAggregationPipeline
+        userId?: UpdateWithAggregationPipeline
     }>,
     res: Response
 ) {
-    const { id, responseId } = req.params
+    const { id, responseId, userId } = req.params
     const { text } = req.body
 
     if (!text) {
@@ -245,6 +246,7 @@ async function updatePostResponse(
     const updateDoc = {
         $set: {
             'respostas.$.text': text,
+            'respostas.$.wasEdited': true,
         },
     }
 
@@ -260,6 +262,16 @@ async function updatePostResponse(
             )
         ) {
             return res.status(404).json({ message: 'Response not found' })
+        }
+
+        if (
+            post.respostas.find(
+                (r) => r._id === (responseId as unknown as string)
+            )?.userId !== userId
+        ) {
+            return res
+                .status(401)
+                .json({ message: 'You are not the owner of this response' })
         }
 
         await Post.updateOne(filter, updateDoc)
@@ -324,10 +336,11 @@ async function deletePostResponse(
     req: Request<{
         id?: UpdateWithAggregationPipeline
         responseId?: UpdateWithAggregationPipeline
+        userId?: UpdateWithAggregationPipeline
     }>,
     res: Response
 ) {
-    const { id, responseId } = req.params
+    const { id, responseId, userId } = req.params
 
     const filter = { _id: id }
     const updateDoc = {
@@ -348,6 +361,16 @@ async function deletePostResponse(
             )
         ) {
             return res.status(404).json({ message: 'Response not found' })
+        }
+
+        if (
+            post.respostas.find(
+                (r) => r._id === (responseId as unknown as string)
+            )?.userId !== userId
+        ) {
+            return res
+                .status(401)
+                .json({ message: 'You are not the owner of this response' })
         }
 
         await Post.updateOne(filter, updateDoc)
