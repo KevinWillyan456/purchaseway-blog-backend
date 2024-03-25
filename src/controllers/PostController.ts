@@ -98,6 +98,7 @@ async function updatePost(
         if (text) post.conteudo.text = text
         if (urlImg) post.conteudo.urlImg = urlImg
         if (title) post.conteudo.title = title
+        post.wasEdited = true
 
         await post.save()
 
