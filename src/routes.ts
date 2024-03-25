@@ -17,11 +17,9 @@ import {
     indexPost,
     indexPostById,
     storePost,
-    updatePostImg,
+    updatePost,
     updatePostResponse,
     togglePostResponseLikes,
-    updatePostText,
-    updatePostTitle,
 } from './controllers/PostController'
 
 export const routes = express.Router()
@@ -38,9 +36,7 @@ routes.get('/get-user-by-token', getUserByToken)
 routes.get('/posts', indexPost)
 routes.get('/posts/:id', indexPostById)
 routes.post('/posts/:userId', storePost)
-routes.put('/posts/text/:id', updatePostText)
-routes.put('/posts/img/:id', updatePostImg)
-routes.put('/posts/title/:id', updatePostTitle)
+routes.put('/posts/:id/:userId', updatePost)
 routes.delete('/posts/:id/:userId', deletePost)
 routes.put('/posts/likes/:id/:userId', togglePostLikes)
 routes.post('/posts/response/:id/:userId', addPostResponse)

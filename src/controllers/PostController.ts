@@ -69,15 +69,18 @@ async function storePost(
     }
 }
 
-async function updatePostText(
-    req: Request<{ id?: UpdateWithAggregationPipeline }>,
+async function updatePost(
+    req: Request<{
+        id?: UpdateWithAggregationPipeline
+        userId?: UpdateWithAggregationPipeline
+    }>,
     res: Response
 ) {
-    const { text } = req.body
-    const { id } = req.params
+    const { text, urlImg, title } = req.body
+    const { id, userId } = req.params
 
-    if (!text) {
-        return res.status(400).json({ error: 'You must enter with a text' })
+    if (!text && !urlImg && !title) {
+        return res.status(400).json({ error: 'You must enter with a data' })
     }
 
     try {
@@ -86,73 +89,19 @@ async function updatePostText(
             return res.status(404).json({ message: 'Post not found' })
         }
 
-        post.conteudo.text = text
-
-        await post.save()
-
-        return res
-            .status(200)
-            .json({ message: 'Post text updated successfully!' })
-    } catch (err) {
-        return res.status(500).json({ error: err })
-    }
-}
-
-async function updatePostImg(
-    req: Request<{ id?: UpdateWithAggregationPipeline }>,
-    res: Response
-) {
-    const { urlImg } = req.body
-    const { id } = req.params
-
-    if (!urlImg) {
-        return res
-            .status(400)
-            .json({ error: 'You must enter with a image URL' })
-    }
-
-    try {
-        const post = await Post.findById(id)
-        if (!post) {
-            return res.status(404).json({ message: 'Post not found' })
+        if (post.proprietario !== (userId as unknown as string)) {
+            return res
+                .status(401)
+                .json({ message: 'You are not the owner of this post' })
         }
 
-        post.conteudo.urlImg = urlImg
+        if (text) post.conteudo.text = text
+        if (urlImg) post.conteudo.urlImg = urlImg
+        if (title) post.conteudo.title = title
 
         await post.save()
 
-        return res
-            .status(200)
-            .json({ message: 'Post image updated successfully!' })
-    } catch (err) {
-        return res.status(500).json({ error: err })
-    }
-}
-
-async function updatePostTitle(
-    req: Request<{ id?: UpdateWithAggregationPipeline }>,
-    res: Response
-) {
-    const { title } = req.body
-    const { id } = req.params
-
-    if (!title) {
-        return res.status(400).json({ error: 'You must enter with a title' })
-    }
-
-    try {
-        const post = await Post.findById(id)
-        if (!post) {
-            return res.status(404).json({ message: 'Post not found' })
-        }
-
-        post.conteudo.title = title
-
-        await post.save()
-
-        return res
-            .status(200)
-            .json({ message: 'Post title updated successfully!' })
+        return res.status(200).json({ message: 'Post updated successfully!' })
     } catch (err) {
         return res.status(500).json({ error: err })
     }
@@ -169,11 +118,6 @@ async function deletePost(
     const filter = { _id: id }
 
     try {
-        const user = await User.findById(userId)
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' })
-        }
-
         const post = await Post.findById(id)
         if (!post) {
             return res.status(404).json({ message: 'Post not found' })
@@ -419,9 +363,7 @@ export {
     indexPost,
     indexPostById,
     storePost,
-    updatePostText,
-    updatePostImg,
-    updatePostTitle,
+    updatePost,
     deletePost,
     togglePostLikes,
     addPostResponse,
