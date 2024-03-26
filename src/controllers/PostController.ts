@@ -43,7 +43,7 @@ async function storePost(
     req: Request<{ userId?: UpdateWithAggregationPipeline }>,
     res: Response
 ) {
-    const { text, title } = req.body
+    const { text, title, urlImg } = req.body
     const { userId } = req.params
 
     if (!text || !title) {
@@ -58,6 +58,16 @@ async function storePost(
         return res.status(400).json({ error: 'text is too long' })
     }
 
+    if (urlImg) {
+        if (
+            await fetch(urlImg)
+                .then((res) => res.status !== 200)
+                .catch(() => true)
+        ) {
+            return res.status(400).json({ error: 'urlImg is invalid' })
+        }
+    }
+
     try {
         const user = await User.findById(userId)
 
@@ -67,7 +77,7 @@ async function storePost(
 
         const post = new Post({
             _id: uuid(),
-            conteudo: { text, urlImg: '', title },
+            conteudo: { text, urlImg, title },
             proprietario: user?._id,
             dataCriacao: new Date(),
         })
