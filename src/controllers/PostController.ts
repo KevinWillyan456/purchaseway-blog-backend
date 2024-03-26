@@ -4,6 +4,9 @@ import { v4 as uuid } from 'uuid'
 import Post from '../models/Post'
 import User from '../models/User'
 
+const MAX_TEXT_LENGTH = 5000
+const MAX_TITLE_LENGTH = 100
+
 async function indexPost(req: Request, res: Response) {
     try {
         const posts = await Post.find()
@@ -47,6 +50,14 @@ async function storePost(
         return res.status(400).json({ error: 'data is missing' })
     }
 
+    if (title.length > MAX_TITLE_LENGTH) {
+        return res.status(400).json({ error: 'title is too long' })
+    }
+
+    if (text.length > MAX_TEXT_LENGTH) {
+        return res.status(400).json({ error: 'text is too long' })
+    }
+
     try {
         const user = await User.findById(userId)
 
@@ -81,6 +92,14 @@ async function updatePost(
 
     if (!text && !urlImg && !title) {
         return res.status(400).json({ error: 'You must enter with a data' })
+    }
+
+    if (title && title.length > MAX_TITLE_LENGTH) {
+        return res.status(400).json({ error: 'title is too long' })
+    }
+
+    if (text && text.length > MAX_TEXT_LENGTH) {
+        return res.status(400).json({ error: 'text is too long' })
     }
 
     try {
@@ -194,6 +213,10 @@ async function addPostResponse(
         return res.status(400).json({ error: 'text is missing' })
     }
 
+    if (text.length > MAX_TEXT_LENGTH) {
+        return res.status(400).json({ error: 'text is too long' })
+    }
+
     const filter = { _id: id }
     const updateDoc = {
         $push: {
@@ -240,6 +263,10 @@ async function updatePostResponse(
 
     if (!text) {
         return res.status(400).json({ error: 'text is missing' })
+    }
+
+    if (text.length > MAX_TEXT_LENGTH) {
+        return res.status(400).json({ error: 'text is too long' })
     }
 
     const filter = { _id: id, 'respostas._id': responseId }
