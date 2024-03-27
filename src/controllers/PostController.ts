@@ -58,6 +58,10 @@ async function storePost(
         return res.status(400).json({ error: 'text is too long' })
     }
 
+    if (!text.replace(/\s/g, '').length) {
+        return res.status(400).json({ error: 'text is empty' })
+    }
+
     if (urlImg) {
         if (
             await fetch(urlImg)
@@ -110,6 +114,10 @@ async function updatePost(
 
     if (text && text.length > MAX_TEXT_LENGTH) {
         return res.status(400).json({ error: 'text is too long' })
+    }
+
+    if (!text.replace(/\s/g, '').length) {
+        return res.status(400).json({ error: 'text is empty' })
     }
 
     try {
@@ -233,6 +241,10 @@ async function addPostResponse(
         return res.status(400).json({ error: 'text is too long' })
     }
 
+    if (!text.replace(/\s/g, '').length) {
+        return res.status(400).json({ error: 'text is empty' })
+    }
+
     const filter = { _id: id }
     const updateDoc = {
         $push: {
@@ -283,6 +295,10 @@ async function updatePostResponse(
 
     if (text.length > MAX_TEXT_LENGTH) {
         return res.status(400).json({ error: 'text is too long' })
+    }
+
+    if (!text.replace(/\s/g, '').length) {
+        return res.status(400).json({ error: 'text is empty' })
     }
 
     const filter = { _id: id, 'respostas._id': responseId }
