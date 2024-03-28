@@ -43,7 +43,7 @@ async function storePost(
     req: Request<{ userId?: UpdateWithAggregationPipeline }>,
     res: Response
 ) {
-    const { text, title, urlImg } = req.body
+    const { text, title, urlImg, videoId } = req.body
     const { userId } = req.params
 
     if (!text || !title) {
@@ -72,6 +72,29 @@ async function storePost(
         }
     }
 
+    let validVideoId: string = ''
+
+    if (videoId) {
+        const pieces =
+            videoId.length === 11
+                ? videoId
+                : videoId.split('https://youtu.be/')[1]
+                ? videoId.split('https://youtu.be/')[1].slice(0, 11)
+                : videoId.split('https://youtube.com/watch?v=')[1]
+                ? videoId.split('https://youtube.com/watch?v=')[1].slice(0, 11)
+                : videoId.split('https://www.youtube.com/watch?v=')[1]
+                ? videoId
+                      .split('https://www.youtube.com/watch?v=')[1]
+                      .slice(0, 11)
+                : null
+
+        if (!pieces || pieces.length !== 11) {
+            return res.status(400).json({ error: 'videoId is invalid' })
+        }
+
+        validVideoId = pieces
+    }
+
     try {
         const user = await User.findById(userId)
 
@@ -81,7 +104,7 @@ async function storePost(
 
         const post = new Post({
             _id: uuid(),
-            conteudo: { text, urlImg, title },
+            conteudo: { text, urlImg, title, videoId: validVideoId },
             proprietario: user?._id,
             dataCriacao: new Date(),
         })
