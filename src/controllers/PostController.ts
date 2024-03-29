@@ -124,10 +124,10 @@ async function updatePost(
     }>,
     res: Response
 ) {
-    const { text, urlImg, title } = req.body
+    const { text, urlImg, title, videoId } = req.body
     const { id, userId } = req.params
 
-    if (!text && !urlImg && !title) {
+    if (!text && !urlImg && !title && !videoId) {
         return res.status(400).json({ error: 'You must enter with a data' })
     }
 
@@ -158,9 +158,42 @@ async function updatePost(
         if (text) post.conteudo.text = text
 
         if (urlImg) {
+            if (
+                await fetch(urlImg)
+                    .then((res) => res.status !== 200)
+                    .catch(() => true)
+            ) {
+                return res.status(400).json({ error: 'urlImg is invalid' })
+            }
+
             post.conteudo.urlImg = urlImg
         } else {
             post.conteudo.urlImg = ''
+        }
+
+        if (videoId) {
+            const pieces =
+                videoId.length === 11
+                    ? videoId
+                    : videoId.split('https://youtu.be/')[1]
+                    ? videoId.split('https://youtu.be/')[1].slice(0, 11)
+                    : videoId.split('https://youtube.com/watch?v=')[1]
+                    ? videoId
+                          .split('https://youtube.com/watch?v=')[1]
+                          .slice(0, 11)
+                    : videoId.split('https://www.youtube.com/watch?v=')[1]
+                    ? videoId
+                          .split('https://www.youtube.com/watch?v=')[1]
+                          .slice(0, 11)
+                    : null
+
+            if (!pieces || pieces.length !== 11) {
+                return res.status(400).json({ error: 'videoId is invalid' })
+            }
+
+            post.conteudo.videoId = pieces
+        } else {
+            post.conteudo.videoId = ''
         }
 
         if (title) post.conteudo.title = title
