@@ -21,24 +21,24 @@ export interface PostDoc extends Document {
 const postSchema = new Schema<PostDoc>({
     _id: { type: String, required: true },
     conteudo: {
-        text: { type: String },
+        text: { type: String, required: true },
         urlImg: { type: String, default: '' },
-        title: { type: String },
+        title: { type: String, required: true },
         videoId: { type: String, default: '' },
     },
 
     respostas: [
         {
             _id: { type: String, required: true },
-            userId: { type: String, ref: 'User' },
-            text: { type: String },
-            curtidas: { type: [String] },
+            userId: { type: String, ref: 'User', required: true },
+            text: { type: String, required: true },
+            curtidas: { type: [String], default: [] },
             dataCriacao: { type: Date, default: Date.now },
             wasEdited: { type: Boolean, default: false },
         },
     ],
     proprietario: { type: String, ref: 'User', required: true },
-    curtidas: { type: [String] },
+    curtidas: { type: [String], default: [] },
     dataCriacao: { type: Date, default: Date.now },
     wasEdited: { type: Boolean, default: false },
 })
