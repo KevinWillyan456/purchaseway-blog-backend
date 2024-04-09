@@ -15,6 +15,15 @@ async function indexPost(req: Request, res: Response) {
 
         posts.sort((a, b) => b.curtidas.length - a.curtidas.length)
 
+        posts.forEach((p) => {
+            p.curtidas = [...new Set(p.curtidas)]
+        })
+        posts.forEach((p) => {
+            p.respostas.forEach((r) => {
+                r.curtidas = [...new Set(r.curtidas)]
+            })
+        })
+
         return res.status(200).json({ posts })
     } catch (err) {
         res.status(500).json({ error: err })
@@ -32,6 +41,11 @@ async function indexPostById(
         if (!post) {
             return res.status(404).json({ message: 'Post not found' })
         }
+
+        post.curtidas = [...new Set(post.curtidas)]
+        post.respostas.forEach((r) => {
+            r.curtidas = [...new Set(r.curtidas)]
+        })
 
         return res.status(200).json({ post })
     } catch (err) {
