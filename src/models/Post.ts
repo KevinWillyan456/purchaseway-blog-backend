@@ -5,6 +5,7 @@ export interface PostDoc extends Document {
     _id: string
     conteudo: { text: string; urlImg: string; title: string; videoId: string }
     respostas: Array<{
+        userName?: string
         _id: string
         userId: UserDoc['_id']
         text: string

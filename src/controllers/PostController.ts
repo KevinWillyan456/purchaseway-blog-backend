@@ -9,9 +9,14 @@ const MAX_TITLE_LENGTH = 100
 
 async function indexPost(req: Request, res: Response) {
     try {
-        const posts = await Post.find()
-            .sort({ title: 1 })
-            .collation({ locale: 'pt', strength: 2 })
+        const posts = (
+            await Post.find()
+                .sort({ title: 1 })
+                .collation({ locale: 'pt', strength: 2 })
+        ).map((post) => ({
+            ...post.toObject(),
+            proprietarioId: post.proprietario,
+        }))
 
         posts.sort((a, b) => b.curtidas.length - a.curtidas.length)
 
@@ -21,6 +26,31 @@ async function indexPost(req: Request, res: Response) {
         posts.forEach((p) => {
             p.respostas.forEach((r) => {
                 r.curtidas = [...new Set(r.curtidas)]
+            })
+        })
+
+        const users = await User.find({
+            _id: {
+                $in: [
+                    ...new Set(
+                        posts
+                            .map((p) => [
+                                p.proprietarioId,
+                                ...p.respostas.map((r) => r.userId),
+                            ])
+                            .flat()
+                    ),
+                ],
+            },
+        })
+
+        posts.forEach((p) => {
+            p.proprietario =
+                users.find((u) => u._id === p.proprietarioId)?.nome || ''
+        })
+        posts.forEach((p) => {
+            p.respostas.forEach((r) => {
+                r.userName = users.find((u) => u._id === r.userId)?.nome || ''
             })
         })
 
