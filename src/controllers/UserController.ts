@@ -212,6 +212,10 @@ async function getUserByToken(req: Request, res: Response) {
         }
 
         const postsByUser = await Post.find({ proprietario: user._id })
+        postsByUser.forEach((post) => {
+            post.curtidas = [...new Set(post.curtidas)]
+        })
+
         const likes = postsByUser.reduce((acc, post) => {
             return acc + post.curtidas.length
         }, 0)

@@ -18,8 +18,6 @@ async function indexPost(req: Request, res: Response) {
             proprietarioId: post.proprietario,
         }))
 
-        posts.sort((a, b) => b.curtidas.length - a.curtidas.length)
-
         posts.forEach((p) => {
             p.curtidas = [...new Set(p.curtidas)]
         })
@@ -28,6 +26,8 @@ async function indexPost(req: Request, res: Response) {
                 r.curtidas = [...new Set(r.curtidas)]
             })
         })
+
+        posts.sort((a, b) => b.curtidas.length - a.curtidas.length)
 
         const users = await User.find({
             _id: {
