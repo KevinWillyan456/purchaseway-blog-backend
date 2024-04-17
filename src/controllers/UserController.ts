@@ -228,6 +228,89 @@ async function getUserByToken(req: Request, res: Response) {
     }
 }
 
+async function getUserInfo(req: Request, res: Response) {
+    const token = req.headers.token as string
+
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' })
+    }
+
+    try {
+        const decoded = jwt.verify(
+            token,
+            `${process.env.JWT_SECRET}`
+        ) as jwt.JwtPayload
+
+        const user = await User.findById(decoded.id, '-senha')
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const userEmpty = {
+            nome: user.nome,
+            dataCriacao: user.dataCriacao,
+            posts: 0,
+            curtidasPosts: 0,
+            respostasPosts: 0,
+            imagensCompartilhadas: 0,
+            videosCompartilhados: 0,
+        }
+
+        const posts = await Post.aggregate([
+            {
+                $match: { proprietario: user._id },
+            },
+            {
+                $group: {
+                    _id: '$_id',
+                    total: { $sum: 1 },
+                },
+            },
+        ])
+
+        userEmpty.posts = posts.length
+
+        const postsByUser = await Post.find({ proprietario: user._id })
+        postsByUser.forEach((post) => {
+            post.curtidas = [...new Set(post.curtidas)]
+        })
+
+        const likes = postsByUser.reduce((acc, post) => {
+            return acc + post.curtidas.length
+        }, 0)
+
+        userEmpty.curtidasPosts = likes
+
+        const respostas = postsByUser.reduce((acc, post) => {
+            return acc + post.respostas.length
+        }, 0)
+
+        userEmpty.respostasPosts = respostas
+
+        const imagens = postsByUser.reduce((acc, post) => {
+            if (post.conteudo.urlImg !== '') {
+                return acc + 1
+            }
+            return acc
+        }, 0)
+
+        userEmpty.imagensCompartilhadas = imagens
+
+        const videos = postsByUser.reduce((acc, post) => {
+            if (post.conteudo.videoId !== '') {
+                return acc + 1
+            }
+            return acc
+        }, 0)
+
+        userEmpty.videosCompartilhados = videos
+
+        return res.status(200).json({ user: userEmpty })
+    } catch (err) {
+        res.status(401).json({ message: 'Token is invalid' })
+    }
+}
+
 export {
     indexUser,
     indexUserById,
@@ -237,4 +320,5 @@ export {
     login,
     verifyToken,
     getUserByToken,
+    getUserInfo,
 }
