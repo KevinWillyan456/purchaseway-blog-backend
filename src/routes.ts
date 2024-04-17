@@ -13,6 +13,7 @@ import {
 import {
     addPostResponse,
     deletePost,
+    deleteAllPosts,
     deletePostResponse,
     togglePostLikes,
     indexPost,
@@ -40,6 +41,7 @@ routes.get('/posts/:id', indexPostById)
 routes.post('/posts/:userId', storePost)
 routes.put('/posts/:id/:userId', updatePost)
 routes.delete('/posts/:id/:userId', deletePost)
+routes.delete('/delete-all-posts/:userId', deleteAllPosts)
 routes.put('/posts/likes/:id/:userId', togglePostLikes)
 routes.post('/posts/response/:id/:userId', addPostResponse)
 routes.put('/posts/response/:id/:responseId/:userId', updatePostResponse)

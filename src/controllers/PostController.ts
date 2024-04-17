@@ -283,6 +283,29 @@ async function deletePost(
     }
 }
 
+async function deleteAllPosts(
+    req: Request<{ userId?: UpdateWithAggregationPipeline }>,
+    res: Response
+) {
+    const { userId } = req.params
+    const filter = { proprietario: userId }
+
+    try {
+        const user = await User.findById(userId)
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const postDelete = await Post.deleteMany(filter)
+        if (postDelete.deletedCount < 1) {
+            return res.status(404).json({ message: 'Posts not removed' })
+        }
+        return res.status(200).json({ message: 'Posts removed successfully!' })
+    } catch (err) {
+        return res.status(500).json({ error: err })
+    }
+}
+
 async function togglePostLikes(
     req: Request<{
         id?: UpdateWithAggregationPipeline
@@ -548,6 +571,7 @@ export {
     storePost,
     updatePost,
     deletePost,
+    deleteAllPosts,
     togglePostLikes,
     addPostResponse,
     updatePostResponse,
