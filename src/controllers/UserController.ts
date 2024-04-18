@@ -121,16 +121,28 @@ async function updateUser(
 }
 
 async function deleteUser(
-    req: Request<{ id?: UpdateWithAggregationPipeline }>,
+    req: Request<{
+        id?: UpdateWithAggregationPipeline
+        email?: string
+    }>,
     res: Response
 ) {
-    const { id } = req.params
+    const { id, email } = req.params
     const filter = { _id: id }
 
     try {
-        const user = await User.deleteOne(filter)
-        if (user.deletedCount < 1) {
+        const user = await User.findById(id)
+        if (!user) {
             return res.status(404).json({ message: 'User not found' })
+        }
+
+        if (user.email !== email) {
+            return res.status(401).json({ message: 'Email not authorized' })
+        }
+
+        const userDelete = await User.deleteOne(filter)
+        if (userDelete.deletedCount < 1) {
+            return res.status(404).json({ message: 'User not deleted' })
         }
         return res.status(200).json({ message: 'User removed succesfully!' })
     } catch (err) {
