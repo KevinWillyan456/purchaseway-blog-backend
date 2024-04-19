@@ -6,6 +6,11 @@ import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import Post from '../models/Post'
 
+const USER_NAME_MIN_LENGTH = 3
+const USER_NAME_MAX_LENGTH = 100
+const USER_PASSWORD_MIN_LENGTH = 6
+const USER_PASSWORD_MAX_LENGTH = 100
+
 async function indexUser(req: Request, res: Response) {
     try {
         const users = await User.find({}, '-senha')
@@ -43,7 +48,31 @@ async function storeUser(req: Request, res: Response) {
         return res.status(400).json({ error: 'data is missing' })
     }
 
-    if (typeof stayConnected !== 'boolean') {
+    if (nome.length < USER_NAME_MIN_LENGTH) {
+        return res.status(400).json({
+            error: `name must be at least ${USER_NAME_MIN_LENGTH} characters`,
+        })
+    }
+
+    if (nome.length > USER_NAME_MAX_LENGTH) {
+        return res.status(400).json({
+            error: `name must be at most ${USER_NAME_MAX_LENGTH} characters`,
+        })
+    }
+
+    if (senha.length < USER_PASSWORD_MIN_LENGTH) {
+        return res.status(400).json({
+            error: `password must be at least ${USER_PASSWORD_MIN_LENGTH} characters`,
+        })
+    }
+
+    if (senha.length > USER_PASSWORD_MAX_LENGTH) {
+        return res.status(400).json({
+            error: `password must be at most ${USER_PASSWORD_MAX_LENGTH} characters`,
+        })
+    }
+
+    if (stayConnected && typeof stayConnected !== 'boolean') {
         return res
             .status(400)
             .json({ error: 'stayConnected must be a boolean' })
@@ -90,6 +119,30 @@ async function updateUser(
 
     if (!nome && !senha && !email) {
         return res.status(400).json({ error: 'You must enter a new data' })
+    }
+
+    if (nome && nome.length < USER_NAME_MIN_LENGTH) {
+        return res.status(400).json({
+            error: `name must be at least ${USER_NAME_MIN_LENGTH} characters`,
+        })
+    }
+
+    if (nome && nome.length > USER_NAME_MAX_LENGTH) {
+        return res.status(400).json({
+            error: `name must be at most ${USER_NAME_MAX_LENGTH} characters`,
+        })
+    }
+
+    if (senha && senha.length < USER_PASSWORD_MIN_LENGTH) {
+        return res.status(400).json({
+            error: `password must be at least ${USER_PASSWORD_MIN_LENGTH} characters`,
+        })
+    }
+
+    if (senha && senha.length > USER_PASSWORD_MAX_LENGTH) {
+        return res.status(400).json({
+            error: `password must be at most ${USER_PASSWORD_MAX_LENGTH} characters`,
+        })
     }
 
     let encryptedPassword
