@@ -296,10 +296,8 @@ async function deleteAllPosts(
             return res.status(404).json({ message: 'User not found' })
         }
 
-        const postDelete = await Post.deleteMany(filter)
-        if (postDelete.deletedCount < 1) {
-            return res.status(404).json({ message: 'Posts not removed' })
-        }
+        await Post.deleteMany(filter)
+
         return res.status(200).json({ message: 'Posts removed successfully!' })
     } catch (err) {
         return res.status(500).json({ error: err })
