@@ -193,6 +193,13 @@ async function deleteUser(
             return res.status(401).json({ message: 'Email not authorized' })
         }
 
+        await Post.deleteMany({ proprietario: id })
+        await Post.updateMany(
+            {},
+            { $pull: { respostas: { userId: id } } },
+            { multi: true }
+        )
+
         const userDelete = await User.deleteOne(filter)
         if (userDelete.deletedCount < 1) {
             return res.status(404).json({ message: 'User not deleted' })
