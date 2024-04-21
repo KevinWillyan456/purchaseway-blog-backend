@@ -200,6 +200,13 @@ async function deleteUser(
             { multi: true }
         )
 
+        await Post.updateMany({}, { $pull: { curtidas: id } }, { multi: true })
+        await Post.updateMany(
+            {},
+            { $pull: { 'respostas.$[].curtidas': id } },
+            { multi: true }
+        )
+
         const userDelete = await User.deleteOne(filter)
         if (userDelete.deletedCount < 1) {
             return res.status(404).json({ message: 'User not deleted' })
