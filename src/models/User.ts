@@ -7,6 +7,7 @@ export interface UserDoc extends Document {
     email: string
     dataCriacao: Date
     curtidas: number
+    fotoPerfil: string
 }
 
 const userSchema = new Schema<UserDoc>({
@@ -16,6 +17,7 @@ const userSchema = new Schema<UserDoc>({
     email: { type: String, required: true, unique: true },
     dataCriacao: { type: Date, default: Date.now },
     curtidas: { type: Number, default: 0 },
+    fotoPerfil: { type: String, default: '' },
 })
 
 export default model<UserDoc>('User', userSchema)

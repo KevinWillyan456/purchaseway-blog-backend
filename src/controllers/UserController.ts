@@ -114,7 +114,7 @@ async function updateUser(
     req: Request<{ id?: UpdateWithAggregationPipeline }>,
     res: Response
 ) {
-    const { nome, senha, email } = req.body
+    const { nome, senha, email, fotoPerfil } = req.body
     const { id } = req.params
 
     if (!nome && !senha && !email) {
@@ -145,6 +145,16 @@ async function updateUser(
         })
     }
 
+    if (fotoPerfil) {
+        if (
+            await fetch(fotoPerfil)
+                .then((res) => res.status !== 200)
+                .catch(() => true)
+        ) {
+            return res.status(400).json({ error: 'urlImg is invalid' })
+        }
+    }
+
     let encryptedPassword
 
     if (senha) {
@@ -157,6 +167,7 @@ async function updateUser(
             nome,
             senha: encryptedPassword,
             email,
+            fotoPerfil,
         },
     }
 
