@@ -54,6 +54,17 @@ async function indexPost(req: Request, res: Response) {
             })
         })
 
+        posts.forEach((p) => {
+            p.fotoPerfil = users.find(
+                (u) => u._id === p.proprietarioId
+            )?.fotoPerfil
+        })
+        posts.forEach((p) => {
+            p.respostas.forEach((r) => {
+                r.fotoPerfil = users.find((u) => u._id === r.userId)?.fotoPerfil
+            })
+        })
+
         return res.status(200).json({ posts })
     } catch (err) {
         res.status(500).json({ error: err })

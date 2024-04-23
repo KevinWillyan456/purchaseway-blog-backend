@@ -12,11 +12,13 @@ export interface PostDoc extends Document {
         curtidas: string[]
         dataCriacao: Date
         wasEdited: boolean
+        fotoPerfil?: string
     }>
     proprietario: UserDoc['_id']
     curtidas: string[]
     dataCriacao: Date
     wasEdited: boolean
+    fotoPerfil?: string
 }
 
 const postSchema = new Schema<PostDoc>({
