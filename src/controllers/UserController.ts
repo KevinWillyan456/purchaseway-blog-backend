@@ -114,7 +114,7 @@ async function updateUser(
     req: Request<{ id?: UpdateWithAggregationPipeline }>,
     res: Response
 ) {
-    const { nome, senha, email, fotoPerfil } = req.body
+    const { nome, senha, email, fotoPerfil, novaSenha } = req.body
     const { id } = req.params
 
     if (!nome && !senha && !email) {
@@ -158,7 +158,30 @@ async function updateUser(
     let encryptedPassword
 
     if (senha) {
-        encryptedPassword = await bcrypt.hash(senha, 8)
+        if (!novaSenha) {
+            return res
+                .status(400)
+                .json({ error: 'You must enter a new password' })
+        }
+
+        const user = await User.findById(id)
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const passwordIsValid = await bcrypt.compare(senha, user.senha)
+
+        if (!passwordIsValid) {
+            return res.status(401).json({ message: 'Invalid password' })
+        }
+
+        if (senha === novaSenha) {
+            return res.status(400).json({
+                error: 'The new password must be different from the current one',
+            })
+        }
+
+        encryptedPassword = await bcrypt.hash(novaSenha, 8)
     }
 
     const filter = { _id: id }
