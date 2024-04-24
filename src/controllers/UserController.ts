@@ -42,7 +42,7 @@ async function indexUserById(
 }
 
 async function storeUser(req: Request, res: Response) {
-    const { nome, senha, email, stayConnected } = req.body
+    const { nome, senha, email, stayConnected, picture } = req.body
 
     if (!nome || !senha || !email) {
         return res.status(400).json({ error: 'data is missing' })
@@ -80,11 +80,22 @@ async function storeUser(req: Request, res: Response) {
 
     const encryptedPassword = await bcrypt.hash(senha, 8)
 
+    if (picture) {
+        if (
+            await fetch(picture)
+                .then((res) => res.status !== 200)
+                .catch(() => true)
+        ) {
+            return res.status(400).json({ error: 'urlImg is invalid' })
+        }
+    }
+
     const user = new User({
         _id: uuid(),
         nome,
         senha: encryptedPassword,
         email,
+        fotoPerfil: picture || '',
         dataCriacao: new Date(),
     })
 
