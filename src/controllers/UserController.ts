@@ -209,19 +209,38 @@ async function updateUser(
 
 async function deleteUser(
     req: Request<{
-        id?: UpdateWithAggregationPipeline
         email?: string
     }>,
     res: Response
 ) {
-    const { id, email } = req.params
-    const filter = { _id: id }
+    const { email } = req.params
+
+    const token = req.headers.token as string
+
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' })
+    }
 
     try {
-        const user = await User.findById(id)
+        let decoded: jwt.JwtPayload
+
+        try {
+            decoded = jwt.verify(
+                token,
+                `${process.env.JWT_SECRET}`
+            ) as jwt.JwtPayload
+        } catch (err) {
+            return res.status(401).json({ message: 'Invalid token' })
+        }
+
+        const { id } = decoded
+
+        const user = await User.findById(id, '-senha')
         if (!user) {
             return res.status(404).json({ message: 'User not found' })
         }
+
+        const filter = { _id: id }
 
         if (user.email !== email) {
             return res.status(401).json({ message: 'Email not authorized' })
