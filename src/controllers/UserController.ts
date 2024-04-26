@@ -13,7 +13,7 @@ const USER_PASSWORD_MAX_LENGTH = 100
 
 async function indexUser(req: Request, res: Response) {
     try {
-        const users = await User.find({}, '-senha')
+        const users = await User.find({}, '-senha -senhaGoogle')
             .sort({ title: 1 })
             .collation({ locale: 'pt', strength: 2 })
         return res.status(200).json({ users })
@@ -29,7 +29,7 @@ async function indexUserById(
     const { id } = req.params
 
     try {
-        const user = await User.findById(id, '-senha')
+        const user = await User.findById(id, '-senha -senhaGoogle')
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' })
@@ -42,7 +42,14 @@ async function indexUserById(
 }
 
 async function storeUser(req: Request, res: Response) {
-    const { nome, senha, email, stayConnected, picture } = req.body
+    const {
+        nome,
+        senha,
+        email,
+        stayConnected,
+        picture,
+        isGoogle = false,
+    } = req.body
 
     if (!nome || !senha || !email) {
         return res.status(400).json({ error: 'data is missing' })
@@ -97,6 +104,7 @@ async function storeUser(req: Request, res: Response) {
         email,
         fotoPerfil: picture || '',
         dataCriacao: new Date(),
+        isGoogle,
     })
 
     try {
@@ -125,7 +133,14 @@ async function updateUser(
     req: Request<{ id?: UpdateWithAggregationPipeline }>,
     res: Response
 ) {
-    const { nome, senha, email, fotoPerfil, novaSenha } = req.body
+    const {
+        nome,
+        senha,
+        email,
+        fotoPerfil,
+        novaSenha,
+        isGoogle = false,
+    } = req.body
     const { id } = req.params
 
     if (!nome && !senha && !email) {
@@ -166,33 +181,68 @@ async function updateUser(
         }
     }
 
-    let encryptedPassword
+    let encryptedPassword, encryptedGooglePassword, hasGooglePassword
 
     if (senha) {
-        if (!novaSenha) {
-            return res
-                .status(400)
-                .json({ error: 'You must enter a new password' })
-        }
-
         const user = await User.findById(id)
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' })
+
+        if (isGoogle) {
+            if (user?.hasGooglePassword) {
+                if (!novaSenha) {
+                    return res
+                        .status(400)
+                        .json({ error: 'You must enter a new password' })
+                }
+
+                if (!user) {
+                    return res.status(404).json({ message: 'User not found' })
+                }
+
+                const passwordIsValid = await bcrypt.compare(
+                    senha,
+                    user.senhaGoogle
+                )
+
+                if (!passwordIsValid) {
+                    return res.status(401).json({ message: 'Invalid password' })
+                }
+
+                if (senha === novaSenha) {
+                    return res.status(400).json({
+                        error: 'The new password must be different from the current one',
+                    })
+                }
+
+                encryptedGooglePassword = await bcrypt.hash(novaSenha, 8)
+            } else {
+                hasGooglePassword = true
+                encryptedGooglePassword = await bcrypt.hash(novaSenha, 8)
+            }
+        } else {
+            if (!novaSenha) {
+                return res
+                    .status(400)
+                    .json({ error: 'You must enter a new password' })
+            }
+
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' })
+            }
+
+            const passwordIsValid = await bcrypt.compare(senha, user.senha)
+
+            if (!passwordIsValid) {
+                return res.status(401).json({ message: 'Invalid password' })
+            }
+
+            if (senha === novaSenha) {
+                return res.status(400).json({
+                    error: 'The new password must be different from the current one',
+                })
+            }
+
+            encryptedPassword = await bcrypt.hash(novaSenha, 8)
         }
-
-        const passwordIsValid = await bcrypt.compare(senha, user.senha)
-
-        if (!passwordIsValid) {
-            return res.status(401).json({ message: 'Invalid password' })
-        }
-
-        if (senha === novaSenha) {
-            return res.status(400).json({
-                error: 'The new password must be different from the current one',
-            })
-        }
-
-        encryptedPassword = await bcrypt.hash(novaSenha, 8)
     }
 
     const filter = { _id: id }
@@ -200,8 +250,10 @@ async function updateUser(
         $set: {
             nome,
             senha: encryptedPassword,
+            senhaGoogle: encryptedGooglePassword,
             email,
             fotoPerfil,
+            hasGooglePassword,
         },
     }
 
@@ -246,7 +298,7 @@ async function deleteUser(
 
         const { id } = decoded
 
-        const user = await User.findById(id, '-senha')
+        const user = await User.findById(id, '-senha -senhaGoogle')
         if (!user) {
             return res.status(404).json({ message: 'User not found' })
         }
@@ -282,7 +334,7 @@ async function deleteUser(
 }
 
 async function login(req: Request, res: Response) {
-    const { email, senha, stayConnected } = req.body
+    const { email, senha, stayConnected, isGoogle = false } = req.body
 
     if (!email || !senha) {
         return res.status(400).json({ error: 'data is missing' })
@@ -301,21 +353,50 @@ async function login(req: Request, res: Response) {
             return res.status(404).json({ message: 'User not found' })
         }
 
-        const passwordIsValid = await bcrypt.compare(senha, user.senha)
+        if (user.isGoogle && user.hasGooglePassword && !isGoogle) {
+            const passwordIsValid = await bcrypt.compare(
+                senha,
+                user.senhaGoogle
+            )
 
-        if (!passwordIsValid) {
-            return res.status(401).json({ message: 'Invalid password' })
+            if (!passwordIsValid) {
+                return res.status(401).json({ message: 'Invalid password' })
+            }
+
+            const token = jwt.sign(
+                { id: user._id },
+                `${process.env.JWT_SECRET}`,
+                {
+                    expiresIn: stayConnected ? '7d' : '1d',
+                }
+            )
+
+            return res.status(200).json({
+                message: 'User logged in successfully!',
+                token,
+                stayConnected,
+            })
+        } else {
+            const passwordIsValid = await bcrypt.compare(senha, user.senha)
+
+            if (!passwordIsValid) {
+                return res.status(401).json({ message: 'Invalid password' })
+            }
+
+            const token = jwt.sign(
+                { id: user._id },
+                `${process.env.JWT_SECRET}`,
+                {
+                    expiresIn: stayConnected ? '7d' : '1d',
+                }
+            )
+
+            return res.status(200).json({
+                message: 'User logged in successfully!',
+                token,
+                stayConnected,
+            })
         }
-
-        const token = jwt.sign({ id: user._id }, `${process.env.JWT_SECRET}`, {
-            expiresIn: stayConnected ? '7d' : '1d',
-        })
-
-        return res.status(200).json({
-            message: 'User logged in successfully!',
-            token,
-            stayConnected,
-        })
     } catch (err) {
         res.status(500).json({ error: err })
     }
@@ -349,7 +430,7 @@ async function getUserByToken(req: Request, res: Response) {
             `${process.env.JWT_SECRET}`
         ) as jwt.JwtPayload
 
-        const user = await User.findById(decoded.id, '-senha')
+        const user = await User.findById(decoded.id, '-senha -senhaGoogle')
         if (!user) {
             return res.status(404).json({ message: 'User not found' })
         }
@@ -384,7 +465,7 @@ async function getUserInfo(req: Request, res: Response) {
             `${process.env.JWT_SECRET}`
         ) as jwt.JwtPayload
 
-        const user = await User.findById(decoded.id, '-senha')
+        const user = await User.findById(decoded.id, '-senha -senhaGoogle')
         if (!user) {
             return res.status(404).json({ message: 'User not found' })
         }
@@ -467,7 +548,7 @@ async function getUserPosts(req: Request, res: Response) {
             `${process.env.JWT_SECRET}`
         ) as jwt.JwtPayload
 
-        const user = await User.findById(decoded.id, '-senha')
+        const user = await User.findById(decoded.id, '-senha -senhaGoogle')
         if (!user) {
             return res.status(404).json({ message: 'User not found' })
         }
