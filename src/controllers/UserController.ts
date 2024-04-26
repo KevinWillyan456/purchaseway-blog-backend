@@ -454,6 +454,86 @@ async function getUserInfo(req: Request, res: Response) {
     }
 }
 
+async function getUserPosts(req: Request, res: Response) {
+    const token = req.headers.token as string
+
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' })
+    }
+
+    try {
+        const decoded = jwt.verify(
+            token,
+            `${process.env.JWT_SECRET}`
+        ) as jwt.JwtPayload
+
+        const user = await User.findById(decoded.id, '-senha')
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const posts = (
+            await Post.find({ proprietario: user._id })
+                .sort({ title: 1 })
+                .collation({ locale: 'pt', strength: 2 })
+        ).map((post) => ({
+            ...post.toObject(),
+            proprietarioId: post.proprietario,
+        }))
+
+        posts.forEach((p) => {
+            p.curtidas = [...new Set(p.curtidas)]
+        })
+        posts.forEach((p) => {
+            p.respostas.forEach((r) => {
+                r.curtidas = [...new Set(r.curtidas)]
+            })
+        })
+
+        posts.sort((a, b) => b.curtidas.length - a.curtidas.length)
+
+        const users = await User.find({
+            _id: {
+                $in: [
+                    ...new Set(
+                        posts
+                            .map((p) => [
+                                p.proprietarioId,
+                                ...p.respostas.map((r) => r.userId),
+                            ])
+                            .flat()
+                    ),
+                ],
+            },
+        })
+
+        posts.forEach((p) => {
+            p.proprietario =
+                users.find((u) => u._id === p.proprietarioId)?.nome || ''
+        })
+        posts.forEach((p) => {
+            p.respostas.forEach((r) => {
+                r.userName = users.find((u) => u._id === r.userId)?.nome || ''
+            })
+        })
+
+        posts.forEach((p) => {
+            p.fotoPerfil = users.find(
+                (u) => u._id === p.proprietarioId
+            )?.fotoPerfil
+        })
+        posts.forEach((p) => {
+            p.respostas.forEach((r) => {
+                r.fotoPerfil = users.find((u) => u._id === r.userId)?.fotoPerfil
+            })
+        })
+
+        return res.status(200).json({ posts })
+    } catch (err) {
+        res.status(401).json({ message: 'Token is invalid' })
+    }
+}
+
 export {
     indexUser,
     indexUserById,
@@ -464,4 +544,5 @@ export {
     verifyToken,
     getUserByToken,
     getUserInfo,
+    getUserPosts,
 }

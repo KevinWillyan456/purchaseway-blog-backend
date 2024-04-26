@@ -7,6 +7,7 @@ import {
     verifyToken,
     getUserByToken,
     getUserInfo,
+    getUserPosts,
     storeUser,
     updateUser,
 } from './controllers/UserController'
@@ -35,6 +36,7 @@ routes.post('/login', login)
 routes.post('/verify-token', verifyToken)
 routes.get('/get-user-by-token', getUserByToken)
 routes.get('/get-user-info', getUserInfo)
+routes.get('/get-user-posts', getUserPosts)
 
 routes.get('/posts', indexPost)
 routes.get('/posts/:id', indexPostById)
