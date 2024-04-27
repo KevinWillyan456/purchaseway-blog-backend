@@ -213,7 +213,7 @@ async function updateUser(
                 encryptedGooglePassword = await bcrypt.hash(novaSenha, 8)
             } else {
                 hasGooglePassword = true
-                encryptedGooglePassword = await bcrypt.hash(novaSenha, 8)
+                encryptedGooglePassword = await bcrypt.hash(senha, 8)
             }
         } else {
             if (!novaSenha) {
