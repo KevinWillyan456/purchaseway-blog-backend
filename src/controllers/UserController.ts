@@ -133,14 +133,7 @@ async function updateUser(
     req: Request<{ id?: UpdateWithAggregationPipeline }>,
     res: Response
 ) {
-    const {
-        nome,
-        senha,
-        email,
-        fotoPerfil,
-        novaSenha,
-        isGoogle = false,
-    } = req.body
+    const { nome, senha, email, fotoPerfil, novaSenha } = req.body
     const { id } = req.params
 
     if (!nome && !senha && !email) {
@@ -186,7 +179,11 @@ async function updateUser(
     if (senha) {
         const user = await User.findById(id)
 
-        if (isGoogle) {
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        if (user?.isGoogle) {
             if (user?.hasGooglePassword) {
                 if (!novaSenha) {
                     return res
