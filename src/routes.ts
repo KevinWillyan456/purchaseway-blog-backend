@@ -24,6 +24,7 @@ import {
     updatePostResponse,
     togglePostResponseLikes,
 } from './controllers/PostController'
+import { someNumbers } from './controllers/SystemController'
 
 export const routes = express.Router()
 
@@ -52,3 +53,5 @@ routes.put(
     togglePostResponseLikes
 )
 routes.delete('/posts/response/:id/:responseId/:userId', deletePostResponse)
+
+routes.get('/some-numbers', someNumbers)
