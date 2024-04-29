@@ -15,6 +15,7 @@ export interface PostDoc extends Document {
         fotoPerfil?: string
     }>
     proprietario: UserDoc['_id']
+    proprietarioId?: string
     curtidas: string[]
     dataCriacao: Date
     wasEdited: boolean

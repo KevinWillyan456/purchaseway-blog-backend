@@ -78,7 +78,8 @@ async function indexPostById(
     const { id } = req.params
 
     try {
-        const post = await Post.findById(id)
+        const post = await Post.findById(id).lean()
+
         if (!post) {
             return res.status(404).json({ message: 'Post not found' })
         }
@@ -86,6 +87,30 @@ async function indexPostById(
         post.curtidas = [...new Set(post.curtidas)]
         post.respostas.forEach((r) => {
             r.curtidas = [...new Set(r.curtidas)]
+        })
+
+        post.proprietarioId = post.proprietario
+
+        const users = await User.find({
+            _id: {
+                $in: [
+                    post.proprietario,
+                    ...post.respostas.map((r) => r.userId).flat(),
+                ],
+            },
+        })
+
+        post.proprietario =
+            users.find((u) => u._id === post.proprietarioId)?.nome || ''
+        post.respostas.forEach((r) => {
+            r.userName = users.find((u) => u._id === r.userId)?.nome || ''
+        })
+
+        post.fotoPerfil = users.find(
+            (u) => u._id === post.proprietarioId
+        )?.fotoPerfil
+        post.respostas.forEach((r) => {
+            r.fotoPerfil = users.find((u) => u._id === r.userId)?.fotoPerfil
         })
 
         return res.status(200).json({ post })
