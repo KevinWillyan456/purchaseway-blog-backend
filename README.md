@@ -33,16 +33,16 @@ Antes de começar, certifique-se de ter o Node.js e o MongoDB instalados em sua 
 5. Defina as variáveis de ambiente dentro do arquivo `.env`, defina suas variáveis de ambiente no formato `NOME_DA_VARIAVEL=VALOR`.
 
    ```plaintext
-    # Database configuration
-    DATABASE_URL=sua_conexao_com_mongodb
+   # Database configuration
+   DATABASE_URL=sua_conexao_com_mongodb
     
-    # API configuration
+   # API configuration
     API_KEY=sua_chave_de_api
     
-    # Port configuration
+   # Port configuration
     PORT=sua_porta (opcional a porta padrão será 3000)
     
-    # JWT configuration
+   # JWT configuration
     JWT_SECRET=sua_secret_key
    ```
 
