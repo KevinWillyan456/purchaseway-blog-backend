@@ -35,15 +35,15 @@ Antes de começar, certifique-se de ter o Node.js e o MongoDB instalados em sua 
    ```plaintext
    # Database configuration
    DATABASE_URL=sua_conexao_com_mongodb
-    
+
    # API configuration
-    API_KEY=sua_chave_de_api
-    
+   API_KEY=sua_chave_de_api
+
    # Port configuration
-    PORT=sua_porta (opcional a porta padrão será 3000)
-    
+   PORT=sua_porta (opcional a porta padrão será 3000)
+
    # JWT configuration
-    JWT_SECRET=sua_secret_key
+   JWT_SECRET=sua_secret_key
    ```
 
 6. Inicie o servidor:
