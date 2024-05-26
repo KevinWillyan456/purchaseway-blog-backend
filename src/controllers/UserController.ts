@@ -399,6 +399,55 @@ async function login(req: Request, res: Response) {
     }
 }
 
+async function logout(req: Request, res: Response) {
+    const token = req.headers.token as string
+
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' })
+    }
+    try {
+        const decoded = jwt.verify(
+            token,
+            `${process.env.JWT_SECRET}`
+        ) as jwt.JwtPayload
+
+        const user = await User.findById(decoded.id, '-senha -senhaGoogle')
+
+        if (!user) {
+            return res
+                .status(404)
+                .json({ message: 'User not found, token invalid' })
+        }
+
+        const tokens = user.tokens.filter((t) => {
+            const diff =
+                new Date().getTime() - new Date(t.dataCriacao).getTime()
+            return diff <= 7 * 24 * 60 * 60 * 1000
+        })
+
+        await User.updateOne({ _id: decoded.id }, { tokens })
+
+        await User.updateOne(
+            { _id: decoded.id },
+            {
+                $push: {
+                    tokens: {
+                        _id: uuid(),
+                        token,
+                        dataCriacao: new Date(),
+                    },
+                },
+            }
+        )
+
+        return res
+            .status(200)
+            .json({ message: 'User logged out successfully!' })
+    } catch (err) {
+        res.status(500).json({ error: err })
+    }
+}
+
 async function verifyToken(req: Request, res: Response) {
     const token = req.headers.token as string
 
@@ -408,9 +457,28 @@ async function verifyToken(req: Request, res: Response) {
 
     try {
         jwt.verify(token, `${process.env.JWT_SECRET}`)
+
+        const decoded = jwt.verify(
+            token,
+            `${process.env.JWT_SECRET}`
+        ) as jwt.JwtPayload
+
+        const user = await User.findById(decoded.id, '-senha -senhaGoogle')
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        const tokenExists = user.tokens.some((t) => t.token === token)
+        if (tokenExists) {
+            return res
+                .status(401)
+                .json({ message: 'Token is invalid', valid: false })
+        }
+
         return res.status(200).json({ message: 'Token is valid', valid: true })
     } catch (err) {
-        res.status(401).json({ message: 'Token is invalid' })
+        res.status(401).json({ message: 'Token is invalid', valid: false })
     }
 }
 
@@ -619,6 +687,7 @@ export {
     updateUser,
     deleteUser,
     login,
+    logout,
     verifyToken,
     getUserByToken,
     getUserInfo,

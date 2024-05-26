@@ -11,6 +11,11 @@ export interface UserDoc extends Document {
     isGoogle: boolean
     hasGooglePassword: boolean
     senhaGoogle: string
+    tokens: {
+        _id: string
+        token: string
+        dataCriacao: Date
+    }[]
 }
 
 const userSchema = new Schema<UserDoc>({
@@ -24,6 +29,13 @@ const userSchema = new Schema<UserDoc>({
     isGoogle: { type: Boolean, default: false },
     hasGooglePassword: { type: Boolean, default: false },
     senhaGoogle: { type: String, default: '' },
+    tokens: [
+        {
+            _id: { type: String, required: true },
+            token: { type: String, required: true },
+            dataCriacao: { type: Date, default: Date.now },
+        },
+    ],
 })
 
 export default model<UserDoc>('User', userSchema)

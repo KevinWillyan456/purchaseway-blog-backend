@@ -4,6 +4,7 @@ import {
     indexUser,
     indexUserById,
     login,
+    logout,
     verifyToken,
     getUserByToken,
     getUserInfo,
@@ -34,6 +35,7 @@ routes.post('/users', storeUser)
 routes.put('/users/:id', updateUser)
 routes.delete('/users/:email', deleteUser)
 routes.post('/login', login)
+routes.post('/logout', logout)
 routes.post('/verify-token', verifyToken)
 routes.get('/get-user-by-token', getUserByToken)
 routes.get('/get-user-info', getUserInfo)
